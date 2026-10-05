@@ -1,0 +1,30 @@
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "PL", "DTZ", "BLE"]
+
+# Rules are pinned explicitly rather than left to defaults, so a future ruff
+# release adding checks cannot turn CI red without a code change.
+ignore = [
+    "E501",     # line length is handled by line-length above
+    "PLR2004",  # magic values: pixel sizes and colours read fine inline
+
+    # date.today() is correct here. A shift on the 5th is the 5th wherever the
+    # payroll server happens to live; making these timezone-aware instants
+    # would introduce bugs around midnight, not prevent them.
+    "DTZ011",
+
+    # Tkinter widget constructors take a lot of styling parameters by nature.
+    # Collapsing them into a config object would obscure the call sites.
+    "PLR0913",
+    "PLR0917",
+
+    # Argparse wiring and UI layout are long but linear — one statement per
+    # widget or subcommand. Splitting them scatters a single screen's layout
+    # across several functions and makes it harder to follow, not easier.
+    "PLR0912",
+    "PLR0915",
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["PLR2004", "S101"]
