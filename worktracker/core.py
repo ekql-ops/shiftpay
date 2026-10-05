@@ -82,7 +82,11 @@ def _migrate(data):
     for key in DAY_KEYS:
         data.setdefault("rates", {}).setdefault(key, None)
 
-    # PIP keys were once pip_*; they are now generic benefit_*
+    # PIP keys were once pip_*; they are now the generic benefit_*. The old
+    # schema had no name field because PIP was hardcoded, so keep that label
+    # rather than silently renaming someone's payment to "Benefit".
+    if any(k in data for k in ("pip_anchor", "pip_interval_days", "pip_amount")):
+        data.setdefault("benefit_name", "PIP")
     for old_key, new_key in (("pip_anchor", "benefit_anchor"),
                              ("pip_interval_days", "benefit_interval_days"),
                              ("pip_amount", "benefit_amount")):

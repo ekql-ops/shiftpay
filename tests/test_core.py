@@ -274,3 +274,14 @@ def test_benefit_never_counts_as_earnings(data):
     assert core.breakdown(data)["total"] == 0
 
 
+
+
+def test_migration_keeps_the_old_pip_label():
+    """The old schema hardcoded PIP and had no name field. Upgrading must not
+    silently rename someone's payment to the generic default."""
+    d = core._migrate({"pip_anchor": "2026-10-29", "pip_amount": 428.0, "entries": {}})
+    assert d["benefit_name"] == "PIP"
+
+
+def test_a_fresh_install_gets_the_generic_label():
+    assert core.default_data()["benefit_name"] == "Benefit"
