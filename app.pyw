@@ -1,5 +1,5 @@
-"""Launch the Work Tracker desktop app."""
-from worktracker.gui import main
+"""Launch the ShiftPay desktop app."""
+from shiftpay.gui import main
 
 if __name__ == "__main__":
     main()

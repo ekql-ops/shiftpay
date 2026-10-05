@@ -1,4 +1,4 @@
-"""Generate the Work Tracker app icon (run once; produces icon.ico)."""
+"""Generate the ShiftPay app icon (run once; produces icon.ico)."""
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont

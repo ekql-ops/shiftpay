@@ -31,24 +31,24 @@ jobs:
       - name: Build
         run: >
           python -m PyInstaller --noconfirm --clean --windowed --onedir
-          --name "Work Tracker"
+          --name "ShiftPay"
           --icon assets/icon.ico
           --add-data "assets/icon.ico;."
           app.pyw
 
       - name: Package
-        run: Compress-Archive -Path "dist/Work Tracker/*" -DestinationPath "WorkTracker-windows.zip"
+        run: Compress-Archive -Path "dist/ShiftPay/*" -DestinationPath "ShiftPay-windows.zip"
         shell: pwsh
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WorkTracker-windows
-          path: WorkTracker-windows.zip
+          name: ShiftPay-windows
+          path: ShiftPay-windows.zip
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: WorkTracker-windows.zip
+          files: ShiftPay-windows.zip
           generate_release_notes: true

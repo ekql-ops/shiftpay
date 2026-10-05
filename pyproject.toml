@@ -1,6 +1,6 @@
 [project]
-name = "work-tracker"
-version = "1.0.0"
+name = "shiftpay"
+version = "1.1.0"
 description = "Track shift pay, sick pay and pay periods from one tap a day"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,15 +20,15 @@ dependencies = []
 dev = ["pytest", "ruff", "pyinstaller"]
 
 [project.scripts]
-work = "worktracker.cli:main"
+work = "shiftpay.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/ekql-ops/work-tracker"
-Issues = "https://github.com/ekql-ops/work-tracker/issues"
+Homepage = "https://github.com/ekql-ops/shiftpay"
+Issues = "https://github.com/ekql-ops/shiftpay/issues"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["worktracker"]
+packages = ["shiftpay"]

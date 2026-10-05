@@ -1,4 +1,4 @@
-"""Work Tracker desktop app."""
+"""ShiftPay desktop app."""
 import calendar
 import sys
 import tkinter as tk
@@ -20,7 +20,7 @@ from .core import (
     sick_pay_for,
 )
 
-APP_ID = "WorkTracker.App"
+APP_ID = "ShiftPay.App"
 
 # ── palette ───────────────────────────────────────────────────────────────
 BG        = "#0a0b10"
@@ -295,7 +295,7 @@ def entry_box(parent, width=8, value="", font=None):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Work Tracker")
+        self.title("ShiftPay")
         self.geometry("470x750")
         self.configure(bg=BG)
         self.resizable(False, False)
@@ -320,7 +320,7 @@ class App(tk.Tk):
 
         head = tk.Frame(root, bg=BG)
         head.pack(fill="x")
-        tk.Label(head, text="Work Tracker", font=self.f_h2, bg=BG, fg=FG).pack(side="left")
+        tk.Label(head, text="ShiftPay", font=self.f_h2, bg=BG, fg=FG).pack(side="left")
         tk.Button(head, text="⚙", font=self.f_h2, bg=BG, fg=MUTED, activebackground=BG,
                   activeforeground=FG, relief="flat", bd=0, cursor="hand2",
                   command=self.open_settings).pack(side="right", padx=(8, 0))
@@ -543,7 +543,7 @@ class App(tk.Tk):
 
     # ── settings ──────────────────────────────────────────────────────────
     def open_settings(self, first_run=False):
-        win = Popup(self, "Set up Work Tracker" if first_run else "Settings", w=420, h=770)
+        win = Popup(self, "Set up ShiftPay" if first_run else "Settings", w=420, h=770)
         b = win.body
         d = self.data
 

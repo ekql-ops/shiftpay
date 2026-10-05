@@ -1,4 +1,4 @@
-"""Data model for Work Tracker.
+"""Data model for ShiftPay.
 
 Everything that is specific to one person's job — hourly rates, which days
 they work, sick pay, when the employer's pay period ends — lives in the data
@@ -11,7 +11,7 @@ import shutil
 from datetime import date, timedelta
 from pathlib import Path
 
-APP_NAME = "WorkTracker"
+APP_NAME = "ShiftPay"
 DATA_FILENAME = "work_data.json"
 
 PAY_PERIOD_DAYS = 28
@@ -43,22 +43,34 @@ def default_data():
     }
 
 
+LEGACY_APP_NAME = "WorkTracker"     # the app was called this before v1.1
+
+
 def data_dir():
     """Per-user storage, so the packaged app and the scripts share one file
     and rebuilding or reinstalling never touches it."""
-    base = (os.environ.get("WORKTRACKER_HOME")
-            or os.environ.get("APPDATA")
-            or os.environ.get("XDG_DATA_HOME")
-            or str(Path.home()))
-    d = Path(base)
-    if not os.environ.get("WORKTRACKER_HOME"):
-        d = d / APP_NAME
+    override = os.environ.get("SHIFTPAY_HOME")
+    if override:
+        d = Path(override)
+    else:
+        base = (os.environ.get("APPDATA")
+                or os.environ.get("XDG_DATA_HOME")
+                or str(Path.home()))
+        d = Path(base) / APP_NAME
     d.mkdir(parents=True, exist_ok=True)
     return d
 
 
 def data_file():
-    return data_dir() / DATA_FILENAME
+    """The data file, carrying across anything left under the old app name."""
+    path = data_dir() / DATA_FILENAME
+    if not path.exists() and not os.environ.get("SHIFTPAY_HOME"):
+        base = os.environ.get("APPDATA") or os.environ.get("XDG_DATA_HOME")
+        if base:
+            legacy = Path(base) / LEGACY_APP_NAME / DATA_FILENAME
+            if legacy.exists():
+                shutil.copy2(legacy, path)
+    return path
 
 
 # ── load / save ───────────────────────────────────────────────────────────

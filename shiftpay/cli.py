@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command-line interface for Work Tracker.
+"""Command-line interface for ShiftPay.
 
 Everything the desktop app does, scriptable. Useful for bulk edits — logging
 a fortnight of sickness, re-pricing history after a pay rise — and for
@@ -326,7 +326,7 @@ def cmd_where(args, data):
 
 # ── wiring ────────────────────────────────────────────────────────────────
 def build_parser():
-    p = argparse.ArgumentParser(prog="work", description="Work Tracker — pay and attendance")
+    p = argparse.ArgumentParser(prog="work", description="ShiftPay — pay and attendance")
     sub = p.add_subparsers(dest="command", required=True)
 
     def add(name, fn, help_):

@@ -1,6 +1,6 @@
-# Work Tracker
+# ShiftPay
 
-[![tests](https://github.com/ekql-ops/work-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/ekql-ops/work-tracker/actions/workflows/tests.yml)
+[![tests](https://github.com/ekql-ops/shiftpay/actions/workflows/tests.yml/badge.svg)](https://github.com/ekql-ops/shiftpay/actions/workflows/tests.yml)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 [![licence](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
@@ -55,9 +55,9 @@ When one does, you have a day-by-day record to check it against.
 
 ### Windows — download and run
 
-Grab `WorkTracker-windows.zip` from
-[Releases](https://github.com/ekql-ops/work-tracker/releases), unzip it
-anywhere, and run `Work Tracker.exe`. No Python needed.
+Grab `ShiftPay-windows.zip` from
+[Releases](https://github.com/ekql-ops/shiftpay/releases), unzip it
+anywhere, and run `ShiftPay.exe`. No Python needed.
 
 Windows will show a SmartScreen warning the first time because the app isn't
 code-signed — click **More info → Run anyway**. (Signing costs a few hundred
@@ -68,8 +68,8 @@ To pin it: open the app, right-click its taskbar icon → **Pin to taskbar**.
 ### From source — any platform
 
 ```bash
-git clone https://github.com/ekql-ops/work-tracker.git
-cd work-tracker
+git clone https://github.com/ekql-ops/shiftpay.git
+cd shiftpay
 python app.pyw
 ```
 
@@ -101,13 +101,13 @@ The same data, scriptable — useful for bulk edits and for checking figures
 without opening a window.
 
 ```bash
-python -m worktracker.cli period          # this period's breakdown and payday
-python -m worktracker.cli log             # log today as worked
-python -m worktracker.cli sick 2026-09-14 --until 2026-09-21
-python -m worktracker.cli adjust 2026-10-11 184.88 --note "back pay"
-python -m worktracker.cli forecast --until 2026-10-11 --assume work
-python -m worktracker.cli recalc          # re-price history after a pay rise
-python -m worktracker.cli where           # path to your data file
+python -m shiftpay.cli period          # this period's breakdown and payday
+python -m shiftpay.cli log             # log today as worked
+python -m shiftpay.cli sick 2026-09-14 --until 2026-09-21
+python -m shiftpay.cli adjust 2026-10-11 184.88 --note "back pay"
+python -m shiftpay.cli forecast --until 2026-10-11 --assume work
+python -m shiftpay.cli recalc          # re-price history after a pay rise
+python -m shiftpay.cli where           # path to your data file
 ```
 
 `work <command> --help` explains any of them. Logging a day that's already
@@ -120,11 +120,11 @@ A single JSON file, outside the app:
 
 | Platform | Path |
 |---|---|
-| Windows | `%APPDATA%\WorkTracker\work_data.json` |
-| macOS / Linux | `~/WorkTracker/work_data.json` |
+| Windows | `%APPDATA%\ShiftPay\work_data.json` |
+| macOS / Linux | `~/ShiftPay/work_data.json` |
 
 Reinstalling, updating or deleting the app never touches it. Back it up by
-copying that one file. Set `WORKTRACKER_HOME` to put it somewhere else — a
+copying that one file. Set `SHIFTPAY_HOME` to put it somewhere else — a
 synced folder, say, or a test directory.
 
 Writes are atomic, so a crash or power cut mid-save can't leave you with a
@@ -140,7 +140,7 @@ python -m pytest            # 55 tests
 python -m ruff check .      # lint, must be clean
 ```
 
-Tests run against a temporary directory via `WORKTRACKER_HOME`, so the suite
+Tests run against a temporary directory via `SHIFTPAY_HOME`, so the suite
 never touches a real install. CI runs them on Windows and Linux across Python
 3.10 and 3.12.
 
@@ -149,7 +149,7 @@ never touches a real install. CI runs them on Windows and Linux across Python
 ```bash
 python -m pip install pyinstaller
 python -m PyInstaller --noconfirm --clean --windowed --onedir \
-  --name "Work Tracker" --icon assets/icon.ico \
+  --name "ShiftPay" --icon assets/icon.ico \
   --add-data "assets/icon.ico;." app.pyw
 ```
 
@@ -158,9 +158,9 @@ Pushing a `v*` tag builds this in CI and attaches the zip to a release.
 ### Layout
 
 ```
-worktracker/core.py   data model, pay periods, totals — no UI
-worktracker/gui.py    tkinter app
-worktracker/cli.py    command line
+shiftpay/core.py   data model, pay periods, totals — no UI
+shiftpay/gui.py    tkinter app
+shiftpay/cli.py    command line
 tools/make_icon.py    regenerates the icon
 ```
 

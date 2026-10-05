@@ -1,6 +1,6 @@
 """Tests for the data model.
 
-Every test runs against a temporary data directory via the WORKTRACKER_HOME
+Every test runs against a temporary data directory via the SHIFTPAY_HOME
 environment variable, so the suite never touches a real install.
 """
 import json
@@ -8,7 +8,7 @@ from datetime import date
 
 import pytest
 
-from worktracker import core
+from shiftpay import core
 
 
 def _FixedDate(pinned):
@@ -22,7 +22,7 @@ def _FixedDate(pinned):
 
 @pytest.fixture(autouse=True)
 def isolated_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("WORKTRACKER_HOME", str(tmp_path))
+    monkeypatch.setenv("SHIFTPAY_HOME", str(tmp_path))
     return tmp_path
 
 
@@ -285,3 +285,26 @@ def test_migration_keeps_the_old_pip_label():
 
 def test_a_fresh_install_gets_the_generic_label():
     assert core.default_data()["benefit_name"] == "Benefit"
+
+
+def test_data_carries_over_from_the_old_app_name(tmp_path, monkeypatch):
+    """The app was called WorkTracker before v1.1. Renaming it must not orphan
+    someone's pay history in the old directory."""
+    monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    legacy_dir = tmp_path / core.LEGACY_APP_NAME
+    legacy_dir.mkdir()
+    payload = core.default_data()
+    payload["entries"]["2026-09-22"] = {"amount": 31.78, "hours": 2.5,
+                                        "note": "", "worked": True}
+    (legacy_dir / core.DATA_FILENAME).write_text(json.dumps(payload), encoding="utf-8")
+
+    assert core.load()["entries"]["2026-09-22"]["amount"] == 31.78
+    # and it is copied, not moved — the old file stays put as a safety net
+    assert (legacy_dir / core.DATA_FILENAME).exists()
+
+
+def test_a_new_install_ignores_the_old_directory(tmp_path, monkeypatch):
+    monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    assert core.load()["entries"] == {}

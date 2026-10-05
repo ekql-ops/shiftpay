@@ -5,12 +5,12 @@ data file, so the wiring between commands and the model is covered too.
 """
 import pytest
 
-from worktracker import cli, core
+from shiftpay import cli, core
 
 
 @pytest.fixture(autouse=True)
 def isolated_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("WORKTRACKER_HOME", str(tmp_path))
+    monkeypatch.setenv("SHIFTPAY_HOME", str(tmp_path))
     return tmp_path
 
 
