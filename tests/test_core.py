@@ -308,3 +308,14 @@ def test_a_new_install_ignores_the_old_directory(tmp_path, monkeypatch):
     monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
     monkeypatch.setenv("APPDATA", str(tmp_path))
     assert core.load()["entries"] == {}
+
+
+def test_single_instance_guard_allows_startup_off_windows(monkeypatch):
+    """The guard must never block the app from starting on a platform where
+    it can't check — failing open is the safe direction."""
+    pytest.importorskip("tkinter")   # CI images don't always ship tkinter
+    # imported here rather than at module scope: a missing tkinter would
+    # otherwise break collection of every test in this file
+    from shiftpay import gui  # noqa: PLC0415
+    monkeypatch.setattr(gui.sys, "platform", "linux")
+    assert gui.claim_single_instance() is True

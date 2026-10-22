@@ -76,6 +76,39 @@ def claim_taskbar_identity():
         pass            # not Windows, or the shell API is unavailable
 
 
+WINDOW_TITLE = "ShiftPay"
+# Windows releases a mutex when its handle is collected, so the handle has to
+# outlive the function that opened it. A module-level holder does that without
+# needing `global`.
+_HANDLES = {}
+
+
+def claim_single_instance():
+    """True if this process should carry on, False if an instance was already
+    running and has been brought to the front instead.
+
+    Two copies open at once is not just untidy: each loads the data file at
+    startup and writes the whole thing back on every change, so the one you
+    touch last silently overwrites the other's work.
+    """
+    if sys.platform != "win32":
+        return True                       # only the packaged Windows app pins
+    try:
+        import ctypes  # noqa: PLC0415 — Windows-only
+        kernel32, user32 = ctypes.windll.kernel32, ctypes.windll.user32
+        _HANDLES["mutex"] = kernel32.CreateMutexW(None, False, f"{APP_ID}.SingleInstance")
+        if kernel32.GetLastError() != 183:        # ERROR_ALREADY_EXISTS
+            return True
+        hwnd = user32.FindWindowW(None, WINDOW_TITLE)
+        if hwnd:
+            user32.ShowWindow(hwnd, 9)            # SW_RESTORE, in case minimised
+            user32.SetForegroundWindow(hwnd)
+            user32.BringWindowToTop(hwnd)
+        return False
+    except (AttributeError, OSError):
+        return True                       # can't check, so don't block startup
+
+
 def round_rect(cnv, x1, y1, x2, y2, r, **kw):
     r = min(r, abs(x2 - x1) / 2, abs(y2 - y1) / 2)
     pts = [x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r,
@@ -791,6 +824,8 @@ class App(tk.Tk):
 
 
 def main():
+    if not claim_single_instance():
+        return              # another copy is already open and now has focus
     claim_taskbar_identity()
     App().mainloop()
 

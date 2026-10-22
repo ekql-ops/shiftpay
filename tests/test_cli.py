@@ -3,9 +3,20 @@
 Each test drives the real argument parser and asserts on what landed in the
 data file, so the wiring between commands and the model is covered too.
 """
+from datetime import date
+
 import pytest
 
 from shiftpay import cli, core
+
+
+def _pin_today(pinned):
+    """A date subclass with today() pinned, so date-relative output is stable."""
+    class Fixed(date):
+        @classmethod
+        def today(cls):
+            return pinned
+    return Fixed
 
 
 @pytest.fixture(autouse=True)
@@ -125,7 +136,10 @@ def test_remove_deletes_an_entry(configured):
 
 
 # ── reporting ─────────────────────────────────────────────────────────────
-def test_period_totals_work_sick_and_extra(configured, capsys):
+def test_period_totals_work_sick_and_extra(configured, capsys, monkeypatch):
+    # `period` reports whichever period contains today, so today must be pinned
+    # or this passes only while the real clock sits inside the test's period.
+    monkeypatch.setattr(core, "date", _pin_today(date(2026, 10, 5)))
     run("log", "2026-09-22")
     run("sick", "2026-09-23")
     run("adjust", "2026-10-11", "100")
