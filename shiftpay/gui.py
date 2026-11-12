@@ -582,6 +582,12 @@ class App(tk.Tk):
 
         tk.Label(b, text="Setup" if first_run else "Settings", font=self.f_h2,
                  bg=SURFACE, fg=FG).pack(pady=(14, 2))
+        if first_run:
+            # Say where we looked. If someone sees this screen when they know
+            # they have history, the path is the thing that explains why.
+            tk.Label(b, text=f"no saved data found at\n{core.data_file()}",
+                     font=self.f_small, bg=SURFACE, fg=DIM, justify="center"
+                     ).pack(pady=(2, 6))
         tk.Label(b, text="Leave a day blank if you don't work it",
                  font=self.f_small, bg=SURFACE, fg=MUTED).pack(pady=(0, 10))
 

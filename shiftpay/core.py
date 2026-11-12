@@ -61,15 +61,40 @@ def data_dir():
     return d
 
 
-def data_file():
-    """The data file, carrying across anything left under the old app name."""
-    path = data_dir() / DATA_FILENAME
-    if not path.exists() and not os.environ.get("SHIFTPAY_HOME"):
-        base = os.environ.get("APPDATA") or os.environ.get("XDG_DATA_HOME")
+def fallback_locations():
+    """Other places a data file could plausibly be sitting.
+
+    Launching elevated, or as a different user, or with a roaming profile that
+    has not synced, all change where APPDATA points — and the app would then
+    show its first-run setup over the top of data that already exists. Finding
+    the file is always better than asking someone to type their history again.
+    """
+    out = []
+    for env_key in ("APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME"):
+        base = os.environ.get(env_key)
         if base:
-            legacy = Path(base) / LEGACY_APP_NAME / DATA_FILENAME
-            if legacy.exists():
-                shutil.copy2(legacy, path)
+            out += [Path(base) / APP_NAME, Path(base) / LEGACY_APP_NAME]
+    home = Path.home()
+    out += [home / "AppData" / "Roaming" / APP_NAME,
+            home / "AppData" / "Roaming" / LEGACY_APP_NAME,
+            home / APP_NAME, home / LEGACY_APP_NAME]
+    return out
+
+
+def data_file():
+    """The data file, adopting one from a previous name or location if the
+    expected path is empty."""
+    path = data_dir() / DATA_FILENAME
+    if path.exists() or os.environ.get("SHIFTPAY_HOME"):
+        return path
+    for candidate in fallback_locations():
+        found = candidate / DATA_FILENAME
+        try:
+            if found.exists() and found.resolve() != path.resolve():
+                shutil.copy2(found, path)   # copied, never moved
+                break
+        except OSError:
+            continue                        # unreadable path, try the next
     return path
 
 

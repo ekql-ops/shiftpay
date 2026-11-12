@@ -304,10 +304,18 @@ def test_data_carries_over_from_the_old_app_name(tmp_path, monkeypatch):
     assert (legacy_dir / core.DATA_FILENAME).exists()
 
 
-def test_a_new_install_ignores_the_old_directory(tmp_path, monkeypatch):
+def test_a_genuinely_new_install_starts_empty(tmp_path, monkeypatch):
+    """With nothing to find anywhere, a fresh install gets a blank slate.
+
+    Every location the fallback search consults has to be redirected, or the
+    test reads whatever is on the machine running it.
+    """
     monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
-    monkeypatch.setenv("APPDATA", str(tmp_path))
+    for key in ("APPDATA", "LOCALAPPDATA", "XDG_DATA_HOME"):
+        monkeypatch.setenv(key, str(tmp_path))
+    monkeypatch.setattr(core.Path, "home", classmethod(lambda cls: tmp_path))
     assert core.load()["entries"] == {}
+    assert not core.is_configured(core.load())
 
 
 def test_single_instance_guard_allows_startup_off_windows(monkeypatch):
@@ -319,3 +327,37 @@ def test_single_instance_guard_allows_startup_off_windows(monkeypatch):
     from shiftpay import gui  # noqa: PLC0415
     monkeypatch.setattr(gui.sys, "platform", "linux")
     assert gui.claim_single_instance() is True
+
+
+def test_data_is_adopted_from_another_appdata_location(tmp_path, monkeypatch):
+    """Launching elevated or as another user moves APPDATA. The app must find
+    existing history rather than showing first-run setup over the top of it."""
+    monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
+    roaming, local = tmp_path / "roaming", tmp_path / "local"
+    (local / core.APP_NAME).mkdir(parents=True)
+    payload = core.default_data()
+    payload["entries"]["2026-11-12"] = {"amount": 31.78, "hours": 2.5,
+                                        "note": "", "worked": True}
+    (local / core.APP_NAME / core.DATA_FILENAME).write_text(
+        json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setenv("APPDATA", str(roaming))     # empty, as if a fresh profile
+    monkeypatch.setenv("LOCALAPPDATA", str(local))  # where the real file sits
+    assert core.load()["entries"]["2026-11-12"]["amount"] == 31.78
+
+
+def test_adoption_does_not_fire_when_data_already_exists(tmp_path, monkeypatch):
+    """A real data file must never be overwritten by one found elsewhere."""
+    monkeypatch.delenv("SHIFTPAY_HOME", raising=False)
+    roaming, local = tmp_path / "roaming", tmp_path / "local"
+    for base, amount in ((roaming, 10.0), (local, 99.0)):
+        (base / core.APP_NAME).mkdir(parents=True)
+        payload = core.default_data()
+        payload["entries"]["2026-11-12"] = {"amount": amount, "hours": 1,
+                                            "note": "", "worked": True}
+        (base / core.APP_NAME / core.DATA_FILENAME).write_text(
+            json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setenv("APPDATA", str(roaming))
+    monkeypatch.setenv("LOCALAPPDATA", str(local))
+    assert core.load()["entries"]["2026-11-12"]["amount"] == 10.0   # APPDATA wins
