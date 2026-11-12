@@ -470,11 +470,22 @@ class App(tk.Tk):
         self.month_lbl.config(text=self.grid_widget.month.strftime("%B %Y"))
 
     # ── state ─────────────────────────────────────────────────────────────
-    def first_run_check(self):
-        if not core.is_configured(self.data):
-            self.open_settings(first_run=True)
-        else:
+    def first_run_check(self, attempt=1):
+        """Decide between the daily question and first-run setup.
+
+        A single failed read is not enough to conclude someone has no history:
+        a file being replaced, a sync client rehydrating it, or a scanner
+        holding it briefly all look identical to a fresh install. Retry a few
+        times before offering a setup screen that could overwrite real data.
+        """
+        if core.is_configured(self.data):
             self.refresh()
+            return
+        if attempt <= 3:
+            self.data = core.load()
+            self.after(400, lambda: self.first_run_check(attempt + 1))
+            return
+        self.open_settings(first_run=True)
 
     def refresh(self):
         if not core.is_configured(self.data):
@@ -651,6 +662,17 @@ class App(tk.Tk):
             return int(float(raw)) if integer else float(raw)
 
         def save():
+            # Re-read from disk before writing. If a configured file is there
+            # after all — the setup screen appeared over data that exists —
+            # adopt it rather than overwriting someone's history with a blank
+            # config typed into this form.
+            if first_run:
+                on_disk = core.load()
+                if core.is_configured(on_disk):
+                    self.data = on_disk
+                    win.destroy()
+                    self.refresh()
+                    return
             try:
                 rates = {k: num(f"rate_{k}") for k in DAY_KEYS}
                 if not any(rates.values()):
